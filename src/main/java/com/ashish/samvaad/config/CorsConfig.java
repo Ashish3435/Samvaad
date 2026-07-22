@@ -20,12 +20,19 @@ public class CorsConfig {
 
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "http://localhost:5174"
+                "http://localhost:5174",
+                "https://samvaad-frontend-temj.onrender.com"
         ));
 
         config.setAllowedHeaders(List.of("*"));
 
-        config.setAllowedMethods(List.of("*"));
+        config.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+        ));
 
         config.setExposedHeaders(List.of("*"));
 
