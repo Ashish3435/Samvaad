@@ -7,10 +7,11 @@ import com.ashish.samvaad.dto.UserStatusResponse;
 import com.ashish.samvaad.entity.Role;
 import com.ashish.samvaad.entity.User;
 import com.ashish.samvaad.entity.UserStatus;
+import com.ashish.samvaad.exception.EmailAlreadyExistsException;
 import com.ashish.samvaad.repository.UserRepository;
 import com.ashish.samvaad.service.UserService;
-import com.ashish.samvaad.security.JwtService;
 import com.ashish.samvaad.security.CustomUserDetailsService;
+import com.ashish.samvaad.security.JwtService;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,7 +43,9 @@ public class UserServiceImpl implements UserService {
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new EmailAlreadyExistsException(
+                    "Email already registered. Please login instead."
+            );
         }
 
         User user = User.builder()
@@ -72,7 +75,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository
                 .findByEmail(request.getEmail())
                 .orElseThrow(() ->
-                        new RuntimeException("Invalid email or password"));
+                        new RuntimeException("Invalid email or password")
+                );
 
         if (!passwordEncoder.matches(
                 request.getPassword(),
@@ -98,7 +102,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                        new RuntimeException("User not found")
+                );
 
         user.setStatus(
                 online
@@ -128,6 +133,7 @@ public class UserServiceImpl implements UserService {
                 .map(this::mapToResponse)
                 .toList();
     }
+
     @Override
     public List<UserStatusResponse> searchUsers(String keyword) {
 
