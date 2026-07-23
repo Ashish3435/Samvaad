@@ -20,9 +20,11 @@ export default function Register() {
     };
 
     const handleRegister = async (e) => {
+
         e.preventDefault();
 
         try {
+
             await register(form);
 
             alert("Registration Successful");
@@ -30,11 +32,23 @@ export default function Register() {
             navigate("/login");
 
         } catch (err) {
-            alert(err.response?.data?.message || "Registration Failed");
+
+            console.error(
+                "REGISTRATION ERROR:",
+                err
+            );
+
+            alert(
+                err.response?.data?.message ||
+                err.response?.data ||
+                err.message ||
+                "Registration Failed"
+            );
         }
     };
 
     return (
+
         <div className="min-h-screen flex items-center justify-center bg-slate-100">
 
             <form
@@ -50,14 +64,19 @@ export default function Register() {
                     className="w-full border p-3 rounded mb-4"
                     placeholder="Full Name"
                     name="fullName"
+                    value={form.fullName}
                     onChange={handleChange}
+                    required
                 />
 
                 <input
                     className="w-full border p-3 rounded mb-4"
                     placeholder="Email"
+                    type="email"
                     name="email"
+                    value={form.email}
                     onChange={handleChange}
+                    required
                 />
 
                 <input
@@ -65,23 +84,29 @@ export default function Register() {
                     placeholder="Password"
                     type="password"
                     name="password"
+                    value={form.password}
                     onChange={handleChange}
+                    required
                 />
 
                 <button
+                    type="submit"
                     className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded"
                 >
                     Register
                 </button>
 
                 <p className="text-center mt-6">
+
                     Already have an account?{" "}
+
                     <Link
                         to="/login"
                         className="text-blue-600 font-semibold"
                     >
                         Login
                     </Link>
+
                 </p>
 
             </form>
