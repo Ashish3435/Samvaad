@@ -1,5 +1,6 @@
 package com.ashish.samvaad.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -9,93 +10,24 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private final CustomUserDetailsService userDetailsService;
 
-    private final PasswordEncoder passwordEncoder;
-
-    public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter,
-            CustomUserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder) {
-
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-
-        this.userDetailsService = userDetailsService;
-
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http) throws Exception {
+    public PasswordEncoder passwordEncoder() {
 
-        http
-
-                // Disable CSRF because this is a REST API
-                .csrf(csrf ->
-                        csrf.disable())
-
-                // Enable CORS
-                .cors(cors ->
-                        cors.configurationSource(
-                                corsConfigurationSource()))
-
-                // Stateless JWT authentication
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS))
-
-                // Authorization rules
-                .authorizeHttpRequests(auth -> auth
-
-                        // Authentication endpoints
-                        .requestMatchers(
-                                "/api/auth/**")
-                        .permitAll()
-
-                        // Swagger
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**")
-                        .permitAll()
-
-                        // WebSocket endpoints
-                        .requestMatchers(
-                                "/chat/**",
-                                "/ws/**")
-                        .permitAll()
-
-                        // All other endpoints require JWT
-                        .anyRequest()
-                        .authenticated()
-                )
-
-                // Authentication provider
-                .authenticationProvider(
-                        authenticationProvider())
-
-                // JWT filter
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -105,53 +37,82 @@ public class SecurityConfig {
                 new DaoAuthenticationProvider();
 
         provider.setUserDetailsService(
-                userDetailsService);
+                userDetailsService
+        );
 
         provider.setPasswordEncoder(
-                passwordEncoder);
+                passwordEncoder()
+        );
 
         return provider;
     }
 
     @Bean
     public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration configuration)
-            throws Exception {
+            AuthenticationConfiguration configuration
+    ) throws Exception {
 
         return configuration.getAuthenticationManager();
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
 
-        CorsConfiguration configuration =
-                new CorsConfiguration();
+        http
 
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://localhost:5174",
-                "https://samvaad-frontend-temj.onrender.com"
-        ));
+                // Disable CSRF for REST API
+                .csrf(csrf ->
+                        csrf.disable()
+                )
 
-        configuration.setAllowedMethods(List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-                "OPTIONS"
-        ));
+                // Enable CORS
+                .cors(cors ->
+                        cors.configure(http)
+                )
 
-        configuration.setAllowedHeaders(List.of("*"));
+                // Stateless JWT authentication
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
 
-        configuration.setAllowCredentials(true);
+                // Endpoint authorization
+                .authorizeHttpRequests(auth -> auth
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
+                        // Authentication endpoints
+                        .requestMatchers(
+                                "/api/auth/**"
+                        ).permitAll()
 
-        source.registerCorsConfiguration(
-                "/**",
-                configuration);
+                        // Swagger
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
 
-        return source;
+                        // WebSocket handshake
+                        .requestMatchers(
+                                "/chat/**"
+                        ).permitAll()
+
+                        // Everything else requires login
+                        .anyRequest()
+                        .authenticated()
+                )
+
+                .authenticationProvider(
+                        authenticationProvider()
+                )
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
+
+        return http.build();
     }
 }
