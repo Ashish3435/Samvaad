@@ -14,7 +14,8 @@ public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
 
-        CorsConfiguration config = new CorsConfiguration();
+        CorsConfiguration config =
+                new CorsConfiguration();
 
         config.setAllowCredentials(true);
 
@@ -24,8 +25,6 @@ public class CorsConfig {
                 "https://samvaad-frontend-temj.onrender.com"
         ));
 
-        config.setAllowedHeaders(List.of("*"));
-
         config.setAllowedMethods(List.of(
                 "GET",
                 "POST",
@@ -34,12 +33,17 @@ public class CorsConfig {
                 "OPTIONS"
         ));
 
+        config.setAllowedHeaders(List.of("*"));
+
         config.setExposedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration(
+                "/**",
+                config
+        );
 
         return new CorsFilter(source);
     }
