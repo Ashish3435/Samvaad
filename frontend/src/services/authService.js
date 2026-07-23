@@ -1,11 +1,15 @@
 import axios from "axios";
 
-const API = "http://localhost:8083/api/auth";
+const API_URL = import.meta.env.PROD
+    ? "https://samvaad-0c2e.onrender.com"
+    : "http://localhost:8083";
+
+const API = `${API_URL}/api/auth`;
 
 export const register = async (data) => {
 
     const response = await axios.post(
-        API + "/register",
+        `${API}/register`,
         data
     );
 
@@ -15,7 +19,7 @@ export const register = async (data) => {
 export const login = async (data) => {
 
     const response = await axios.post(
-        API + "/login",
+        `${API}/login`,
         data
     );
 
