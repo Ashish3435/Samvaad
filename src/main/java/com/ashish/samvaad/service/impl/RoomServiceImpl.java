@@ -23,40 +23,31 @@ import java.util.stream.Collectors;
 public class RoomServiceImpl implements RoomService {
 
     private final RoomRepository roomRepository;
-
     private final UserRepository userRepository;
 
     public RoomServiceImpl(
             RoomRepository roomRepository,
             UserRepository userRepository
     ) {
-
         this.roomRepository = roomRepository;
-
         this.userRepository = userRepository;
-
     }
 
     @Override
-    public Room createRoom(
-            CreateRoomRequest request
-    ) {
+    public Room createRoom(CreateRoomRequest request) {
 
         Authentication authentication =
                 SecurityContextHolder
                         .getContext()
                         .getAuthentication();
 
-        String email =
-                authentication.getName();
+        String email = authentication.getName();
 
         User user =
                 userRepository
                         .findByEmail(email)
                         .orElseThrow(() ->
-                                new RuntimeException(
-                                        "User not found"
-                                )
+                                new RuntimeException("User not found")
                         );
 
         String roomCode =
@@ -76,9 +67,7 @@ public class RoomServiceImpl implements RoomService {
                                 )
                         )
                         .createdBy(user)
-                        .createdAt(
-                                LocalDateTime.now()
-                        )
+                        .createdAt(LocalDateTime.now())
                         .build();
 
         return roomRepository.save(room);
@@ -86,24 +75,17 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public List<Room> getAllRooms() {
-
         return roomRepository.findAll();
-
     }
 
     @Override
-    public Room getRoom(
-            String roomCode
-    ) {
+    public Room getRoom(String roomCode) {
 
         return roomRepository
                 .findByRoomCode(roomCode)
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "Room not found"
-                        )
+                        new RuntimeException("Room not found")
                 );
-
     }
 
     @Override
@@ -121,9 +103,7 @@ public class RoomServiceImpl implements RoomService {
 
         User currentUser =
                 userRepository
-                        .findByEmail(
-                                currentUserEmail
-                        )
+                        .findByEmail(currentUserEmail)
                         .orElseThrow(() ->
                                 new RuntimeException(
                                         "Current user not found"
@@ -132,9 +112,7 @@ public class RoomServiceImpl implements RoomService {
 
         User selectedUser =
                 userRepository
-                        .findByEmail(
-                                request.getEmail()
-                        )
+                        .findByEmail(request.getEmail())
                         .orElseThrow(() ->
                                 new RuntimeException(
                                         "Selected user not found"
@@ -153,9 +131,7 @@ public class RoomServiceImpl implements RoomService {
                         .stream()
                         .filter(room ->
                                 room.getMembers()
-                                        .contains(
-                                                selectedUser
-                                        )
+                                        .contains(selectedUser)
                         )
                         .findFirst()
                         .orElse(null);
@@ -164,19 +140,14 @@ public class RoomServiceImpl implements RoomService {
 
             return RoomResponse.builder()
                     .id(existingRoom.getId())
-                    .roomCode(
-                            existingRoom.getRoomCode()
-                    )
-                    .roomName(
-                            existingRoom.getRoomName()
-                    )
+                    .roomCode(existingRoom.getRoomCode())
+                    .roomName(existingRoom.getRoomName())
                     .roomType(
                             existingRoom
                                     .getRoomType()
                                     .name()
                     )
                     .build();
-
         }
 
         String roomCode =
@@ -191,19 +162,14 @@ public class RoomServiceImpl implements RoomService {
         if (
                 currentUser
                         .getId()
-                        .equals(
-                                selectedUser.getId()
-                        )
+                        .equals(selectedUser.getId())
         ) {
 
-            roomName =
-                    currentUser.getFullName();
+            roomName = currentUser.getFullName();
 
         } else {
 
-            roomName =
-                    selectedUser.getFullName();
-
+            roomName = selectedUser.getFullName();
         }
 
         Room room =
@@ -212,25 +178,18 @@ public class RoomServiceImpl implements RoomService {
                         .roomName(roomName)
                         .roomType(RoomType.CHAT)
                         .createdBy(currentUser)
-                        .createdAt(
-                                LocalDateTime.now()
-                        )
+                        .createdAt(LocalDateTime.now())
                         .build();
 
-        room.getMembers()
-                .add(currentUser);
+        room.getMembers().add(currentUser);
 
         if (
                 !currentUser
                         .getId()
-                        .equals(
-                                selectedUser.getId()
-                        )
+                        .equals(selectedUser.getId())
         ) {
 
-            room.getMembers()
-                    .add(selectedUser);
-
+            room.getMembers().add(selectedUser);
         }
 
         Room savedRoom =
@@ -238,19 +197,14 @@ public class RoomServiceImpl implements RoomService {
 
         return RoomResponse.builder()
                 .id(savedRoom.getId())
-                .roomCode(
-                        savedRoom.getRoomCode()
-                )
-                .roomName(
-                        savedRoom.getRoomName()
-                )
+                .roomCode(savedRoom.getRoomCode())
+                .roomName(savedRoom.getRoomName())
                 .roomType(
                         savedRoom
                                 .getRoomType()
                                 .name()
                 )
                 .build();
-
     }
 
     @Override
@@ -274,44 +228,20 @@ public class RoomServiceImpl implements RoomService {
                         );
 
         return roomRepository
-                .findAll()
+                .findMyRooms(currentUser)
                 .stream()
-                .filter(room ->
-                        (
-                                room.getCreatedBy() != null
-                                        &&
-                                        room.getCreatedBy()
-                                                .getId()
-                                                .equals(
-                                                        currentUser
-                                                                .getId()
-                                                )
-                        )
-                                ||
-                                room.getMembers()
-                                        .contains(
-                                                currentUser
-                                        )
-                )
                 .map(room ->
                         RoomResponse.builder()
                                 .id(room.getId())
-                                .roomCode(
-                                        room.getRoomCode()
-                                )
-                                .roomName(
-                                        room.getRoomName()
-                                )
+                                .roomCode(room.getRoomCode())
+                                .roomName(room.getRoomName())
                                 .roomType(
                                         room.getRoomType()
                                                 .name()
                                 )
                                 .build()
                 )
-                .collect(
-                        Collectors.toList()
-                );
-
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -327,9 +257,7 @@ public class RoomServiceImpl implements RoomService {
                                 room.getRoomType()
                                         .equals("CHAT")
                         )
-                        .collect(
-                                Collectors.toList()
-                        );
+                        .collect(Collectors.toList());
 
         List<RoomResponse> groups =
                 myRooms
@@ -338,9 +266,7 @@ public class RoomServiceImpl implements RoomService {
                                 room.getRoomType()
                                         .equals("GROUP")
                         )
-                        .collect(
-                                Collectors.toList()
-                        );
+                        .collect(Collectors.toList());
 
         List<RoomResponse> channels =
                 myRooms
@@ -349,16 +275,12 @@ public class RoomServiceImpl implements RoomService {
                                 room.getRoomType()
                                         .equals("CHANNEL")
                         )
-                        .collect(
-                                Collectors.toList()
-                        );
+                        .collect(Collectors.toList());
 
         return SidebarResponse.builder()
                 .chats(chats)
                 .groups(groups)
                 .channels(channels)
                 .build();
-
     }
-
 }
