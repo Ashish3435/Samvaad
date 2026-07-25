@@ -13,6 +13,7 @@ import com.ashish.samvaad.service.RoomService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,13 +42,16 @@ public class RoomServiceImpl implements RoomService {
                         .getContext()
                         .getAuthentication();
 
-        String email = authentication.getName();
+        String email =
+                authentication.getName();
 
         User user =
                 userRepository
                         .findByEmail(email)
                         .orElseThrow(() ->
-                                new RuntimeException("User not found")
+                                new RuntimeException(
+                                        "User not found"
+                                )
                         );
 
         String roomCode =
@@ -75,6 +79,7 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public List<Room> getAllRooms() {
+
         return roomRepository.findAll();
     }
 
@@ -84,11 +89,14 @@ public class RoomServiceImpl implements RoomService {
         return roomRepository
                 .findByRoomCode(roomCode)
                 .orElseThrow(() ->
-                        new RuntimeException("Room not found")
+                        new RuntimeException(
+                                "Room not found"
+                        )
                 );
     }
 
     @Override
+    @Transactional
     public RoomResponse createPrivateRoom(
             CreatePrivateRoomRequest request
     ) {
@@ -165,11 +173,13 @@ public class RoomServiceImpl implements RoomService {
                         .equals(selectedUser.getId())
         ) {
 
-            roomName = currentUser.getFullName();
+            roomName =
+                    currentUser.getFullName();
 
         } else {
 
-            roomName = selectedUser.getFullName();
+            roomName =
+                    selectedUser.getFullName();
         }
 
         Room room =
@@ -181,7 +191,8 @@ public class RoomServiceImpl implements RoomService {
                         .createdAt(LocalDateTime.now())
                         .build();
 
-        room.getMembers().add(currentUser);
+        room.getMembers()
+                .add(currentUser);
 
         if (
                 !currentUser
@@ -189,7 +200,8 @@ public class RoomServiceImpl implements RoomService {
                         .equals(selectedUser.getId())
         ) {
 
-            room.getMembers().add(selectedUser);
+            room.getMembers()
+                    .add(selectedUser);
         }
 
         Room savedRoom =
@@ -233,8 +245,12 @@ public class RoomServiceImpl implements RoomService {
                 .map(room ->
                         RoomResponse.builder()
                                 .id(room.getId())
-                                .roomCode(room.getRoomCode())
-                                .roomName(room.getRoomName())
+                                .roomCode(
+                                        room.getRoomCode()
+                                )
+                                .roomName(
+                                        room.getRoomName()
+                                )
                                 .roomType(
                                         room.getRoomType()
                                                 .name()
