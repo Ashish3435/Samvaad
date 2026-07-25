@@ -1,61 +1,44 @@
-import axios from "axios";
+import api from "../api/axios";
 
-const API_URL = import.meta.env.PROD
-    ? "https://samvaad-0c2e.onrender.com"
-    : "http://localhost:8083";
-
-const API = `${API_URL}/api/auth`;
-
-export const register = async (data) => {
-
-    const response = await axios.post(
-        `${API}/register`,
-        data
+export const register = async (userData) => {
+    const response = await api.post(
+        "/auth/register",
+        userData
     );
 
     return response.data;
 };
 
-export const login = async (data) => {
-
-    const response = await axios.post(
-        `${API}/login`,
-        data
+export const login = async (credentials) => {
+    const response = await api.post(
+        "/auth/login",
+        credentials
     );
+
+    const data = response.data;
 
     localStorage.setItem(
         "token",
-        response.data.token
+        data.token
     );
 
-    return response.data;
+    return data;
 };
 
 export const logout = () => {
-
     localStorage.removeItem("token");
-
-};
-
-export const getToken = () => {
-
-    return localStorage.getItem("token");
-
+    localStorage.removeItem("email");
 };
 
 export const getCurrentUser = () => {
-
     const token =
         localStorage.getItem("token");
 
     if (!token) {
-
         return null;
-
     }
 
     try {
-
         const payload =
             JSON.parse(
                 atob(
@@ -65,10 +48,19 @@ export const getCurrentUser = () => {
 
         return payload.sub;
 
-    } catch {
+    } catch (error) {
+
+        console.error(
+            "JWT PARSE ERROR:",
+            error
+        );
 
         return null;
-
     }
+};
 
+export const isAuthenticated = () => {
+    return Boolean(
+        localStorage.getItem("token")
+    );
 };

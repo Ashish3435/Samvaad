@@ -1,22 +1,16 @@
 import { getCurrentUser } from "../services/authService";
 
 export default function MessageBubble({ message }) {
-
     const currentUser = getCurrentUser();
 
-    const isMe =
-        message.senderEmail === currentUser;
+    const isMe = message.senderEmail === currentUser;
 
     return (
-
         <div
             className={`flex ${
-                isMe
-                    ? "justify-end"
-                    : "justify-start"
+                isMe ? "justify-end" : "justify-start"
             }`}
         >
-
             <div
                 className={`max-w-md rounded-2xl px-4 py-3 shadow ${
                     isMe
@@ -24,21 +18,14 @@ export default function MessageBubble({ message }) {
                         : "bg-white"
                 }`}
             >
-
                 {!isMe && (
-
                     <p className="font-bold text-blue-600 mb-1">
-
                         {message.senderName}
-
                     </p>
-
                 )}
 
                 <p>
-
                     {message.content}
-
                 </p>
 
                 <div
@@ -48,23 +35,16 @@ export default function MessageBubble({ message }) {
                             : "text-gray-400"
                     }`}
                 >
-
                     <span>
-
                         {new Date(
                             message.sentAt
-                        ).toLocaleTimeString(
-                            [],
-                            {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            }
-                        )}
-
+                        ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        })}
                     </span>
 
                     {isMe && (
-
                         <span
                             className={
                                 message.seen
@@ -72,21 +52,11 @@ export default function MessageBubble({ message }) {
                                     : "text-blue-200"
                             }
                         >
-
-                            {message.seen
-                                ? "✓✓"
-                                : "✓"}
-
+                            {message.seen ? "✓✓" : "✓"}
                         </span>
-
                     )}
-
                 </div>
-
             </div>
-
         </div>
-
     );
-
 }

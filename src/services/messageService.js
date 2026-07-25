@@ -1,18 +1,27 @@
 import api from "../api/axios";
 
-export const getMessages = async (roomCode) => {
 
-    const response =
-        await api.get(`/messages/${roomCode}`);
+export const getMessages =
+    async (roomCode) => {
 
-    return response.data;
 
-};
+        const response =
+            await api.get(
+                `/messages/${roomCode}`
+            );
 
-export const markMessagesAsSeen = async (roomCode) => {
 
-    await api.put(
-        `/messages/${roomCode}/seen`
-    );
+        return response.data;
 
-};
+    };
+
+
+export const markMessagesAsSeen =
+    async (roomCode) => {
+
+
+        await api.put(
+            `/messages/${roomCode}/seen`
+        );
+
+    };
