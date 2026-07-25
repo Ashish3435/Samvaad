@@ -2,6 +2,7 @@ package com.ashish.samvaad.service.impl;
 
 import com.ashish.samvaad.dto.CreatePrivateRoomRequest;
 import com.ashish.samvaad.dto.CreateRoomRequest;
+import com.ashish.samvaad.dto.RoomMemberResponse;
 import com.ashish.samvaad.dto.RoomResponse;
 import com.ashish.samvaad.dto.SidebarResponse;
 import com.ashish.samvaad.entity.Room;
@@ -13,7 +14,6 @@ import com.ashish.samvaad.service.RoomService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,29 +21,41 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class RoomServiceImpl implements RoomService {
+public class RoomServiceImpl
+        implements RoomService {
 
     private final RoomRepository roomRepository;
+
     private final UserRepository userRepository;
+
 
     public RoomServiceImpl(
             RoomRepository roomRepository,
             UserRepository userRepository
     ) {
-        this.roomRepository = roomRepository;
-        this.userRepository = userRepository;
+
+        this.roomRepository =
+                roomRepository;
+
+        this.userRepository =
+                userRepository;
     }
 
+
     @Override
-    public Room createRoom(CreateRoomRequest request) {
+    public Room createRoom(
+            CreateRoomRequest request
+    ) {
 
         Authentication authentication =
                 SecurityContextHolder
                         .getContext()
                         .getAuthentication();
 
+
         String email =
                 authentication.getName();
+
 
         User user =
                 userRepository
@@ -54,6 +66,7 @@ public class RoomServiceImpl implements RoomService {
                                 )
                         );
 
+
         String roomCode =
                 UUID.randomUUID()
                         .toString()
@@ -61,21 +74,32 @@ public class RoomServiceImpl implements RoomService {
                         .substring(0, 8)
                         .toUpperCase();
 
+
         Room room =
                 Room.builder()
                         .roomCode(roomCode)
-                        .roomName(request.getRoomName())
+                        .roomName(
+                                request.getRoomName()
+                        )
                         .roomType(
                                 RoomType.valueOf(
                                         request.getRoomType()
                                 )
                         )
                         .createdBy(user)
-                        .createdAt(LocalDateTime.now())
+                        .createdAt(
+                                LocalDateTime.now()
+                        )
                         .build();
+
+
+        room.getMembers()
+                .add(user);
+
 
         return roomRepository.save(room);
     }
+
 
     @Override
     public List<Room> getAllRooms() {
@@ -83,8 +107,11 @@ public class RoomServiceImpl implements RoomService {
         return roomRepository.findAll();
     }
 
+
     @Override
-    public Room getRoom(String roomCode) {
+    public Room getRoom(
+            String roomCode
+    ) {
 
         return roomRepository
                 .findByRoomCode(roomCode)
@@ -95,8 +122,8 @@ public class RoomServiceImpl implements RoomService {
                 );
     }
 
+
     @Override
-    @Transactional
     public RoomResponse createPrivateRoom(
             CreatePrivateRoomRequest request
     ) {
@@ -106,26 +133,34 @@ public class RoomServiceImpl implements RoomService {
                         .getContext()
                         .getAuthentication();
 
+
         String currentUserEmail =
                 authentication.getName();
 
+
         User currentUser =
                 userRepository
-                        .findByEmail(currentUserEmail)
+                        .findByEmail(
+                                currentUserEmail
+                        )
                         .orElseThrow(() ->
                                 new RuntimeException(
                                         "Current user not found"
                                 )
                         );
 
+
         User selectedUser =
                 userRepository
-                        .findByEmail(request.getEmail())
+                        .findByEmail(
+                                request.getEmail()
+                        )
                         .orElseThrow(() ->
                                 new RuntimeException(
                                         "Selected user not found"
                                 )
                         );
+
 
         List<Room> currentUserRooms =
                 roomRepository
@@ -134,29 +169,27 @@ public class RoomServiceImpl implements RoomService {
                                 currentUser
                         );
 
+
         Room existingRoom =
                 currentUserRooms
                         .stream()
                         .filter(room ->
                                 room.getMembers()
-                                        .contains(selectedUser)
+                                        .contains(
+                                                selectedUser
+                                        )
                         )
                         .findFirst()
                         .orElse(null);
 
+
         if (existingRoom != null) {
 
-            return RoomResponse.builder()
-                    .id(existingRoom.getId())
-                    .roomCode(existingRoom.getRoomCode())
-                    .roomName(existingRoom.getRoomName())
-                    .roomType(
-                            existingRoom
-                                    .getRoomType()
-                                    .name()
-                    )
-                    .build();
+            return mapToRoomResponse(
+                    existingRoom
+            );
         }
+
 
         String roomCode =
                 UUID.randomUUID()
@@ -165,12 +198,16 @@ public class RoomServiceImpl implements RoomService {
                         .substring(0, 8)
                         .toUpperCase();
 
+
         String roomName;
+
 
         if (
                 currentUser
                         .getId()
-                        .equals(selectedUser.getId())
+                        .equals(
+                                selectedUser.getId()
+                        )
         ) {
 
             roomName =
@@ -182,42 +219,45 @@ public class RoomServiceImpl implements RoomService {
                     selectedUser.getFullName();
         }
 
+
         Room room =
                 Room.builder()
                         .roomCode(roomCode)
                         .roomName(roomName)
                         .roomType(RoomType.CHAT)
                         .createdBy(currentUser)
-                        .createdAt(LocalDateTime.now())
+                        .createdAt(
+                                LocalDateTime.now()
+                        )
                         .build();
+
 
         room.getMembers()
                 .add(currentUser);
 
+
         if (
                 !currentUser
                         .getId()
-                        .equals(selectedUser.getId())
+                        .equals(
+                                selectedUser.getId()
+                        )
         ) {
 
             room.getMembers()
                     .add(selectedUser);
         }
 
+
         Room savedRoom =
                 roomRepository.save(room);
 
-        return RoomResponse.builder()
-                .id(savedRoom.getId())
-                .roomCode(savedRoom.getRoomCode())
-                .roomName(savedRoom.getRoomName())
-                .roomType(
-                        savedRoom
-                                .getRoomType()
-                                .name()
-                )
-                .build();
+
+        return mapToRoomResponse(
+                savedRoom
+        );
     }
+
 
     @Override
     public List<RoomResponse> getMyRooms() {
@@ -227,8 +267,10 @@ public class RoomServiceImpl implements RoomService {
                         .getContext()
                         .getAuthentication();
 
+
         String email =
                 authentication.getName();
+
 
         User currentUser =
                 userRepository
@@ -239,32 +281,23 @@ public class RoomServiceImpl implements RoomService {
                                 )
                         );
 
+
         return roomRepository
                 .findMyRooms(currentUser)
                 .stream()
-                .map(room ->
-                        RoomResponse.builder()
-                                .id(room.getId())
-                                .roomCode(
-                                        room.getRoomCode()
-                                )
-                                .roomName(
-                                        room.getRoomName()
-                                )
-                                .roomType(
-                                        room.getRoomType()
-                                                .name()
-                                )
-                                .build()
-                )
-                .collect(Collectors.toList());
+                .map(this::mapToRoomResponse)
+                .collect(
+                        Collectors.toList()
+                );
     }
+
 
     @Override
     public SidebarResponse getSidebarData() {
 
         List<RoomResponse> myRooms =
                 getMyRooms();
+
 
         List<RoomResponse> chats =
                 myRooms
@@ -273,7 +306,10 @@ public class RoomServiceImpl implements RoomService {
                                 room.getRoomType()
                                         .equals("CHAT")
                         )
-                        .collect(Collectors.toList());
+                        .collect(
+                                Collectors.toList()
+                        );
+
 
         List<RoomResponse> groups =
                 myRooms
@@ -282,7 +318,10 @@ public class RoomServiceImpl implements RoomService {
                                 room.getRoomType()
                                         .equals("GROUP")
                         )
-                        .collect(Collectors.toList());
+                        .collect(
+                                Collectors.toList()
+                        );
+
 
         List<RoomResponse> channels =
                 myRooms
@@ -291,12 +330,64 @@ public class RoomServiceImpl implements RoomService {
                                 room.getRoomType()
                                         .equals("CHANNEL")
                         )
-                        .collect(Collectors.toList());
+                        .collect(
+                                Collectors.toList()
+                        );
 
-        return SidebarResponse.builder()
+
+        return SidebarResponse
+                .builder()
                 .chats(chats)
                 .groups(groups)
                 .channels(channels)
+                .build();
+    }
+
+
+    private RoomResponse mapToRoomResponse(
+            Room room
+    ) {
+
+        List<RoomMemberResponse> members =
+                room.getMembers()
+                        .stream()
+                        .map(user ->
+                                RoomMemberResponse
+                                        .builder()
+                                        .id(
+                                                user.getId()
+                                        )
+                                        .fullName(
+                                                user.getFullName()
+                                        )
+                                        .email(
+                                                user.getEmail()
+                                        )
+                                        .status(
+                                                user.getStatus()
+                                                        .name()
+                                        )
+                                        .build()
+                        )
+                        .toList();
+
+
+        return RoomResponse
+                .builder()
+                .id(
+                        room.getId()
+                )
+                .roomCode(
+                        room.getRoomCode()
+                )
+                .roomName(
+                        room.getRoomName()
+                )
+                .roomType(
+                        room.getRoomType()
+                                .name()
+                )
+                .members(members)
                 .build();
     }
 }

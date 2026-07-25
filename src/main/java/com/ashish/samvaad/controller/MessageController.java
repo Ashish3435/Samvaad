@@ -14,14 +14,19 @@ public class MessageController {
 
     private final MessageService messageService;
 
-    public MessageController(MessageService messageService) {
-        this.messageService = messageService;
+    public MessageController(
+            MessageService messageService
+    ) {
+
+        this.messageService =
+                messageService;
     }
 
     @PostMapping
     public MessageResponse sendMessage(
             @RequestBody MessageRequest request,
-            Authentication authentication) {
+            Authentication authentication
+    ) {
 
         return messageService.sendMessage(
                 request,
@@ -31,8 +36,23 @@ public class MessageController {
 
     @GetMapping("/{roomCode}")
     public List<MessageResponse> getMessages(
-            @PathVariable String roomCode) {
+            @PathVariable String roomCode
+    ) {
 
-        return messageService.getMessages(roomCode);
+        return messageService.getMessages(
+                roomCode
+        );
+    }
+
+    @PutMapping("/{roomCode}/seen")
+    public void markMessagesAsSeen(
+            @PathVariable String roomCode,
+            Authentication authentication
+    ) {
+
+        messageService.markMessagesAsSeen(
+                roomCode,
+                authentication.getName()
+        );
     }
 }

@@ -16,4 +16,8 @@ public interface MessageService {
             String roomCode
     );
 
+    void markMessagesAsSeen(
+            String roomCode,
+            String viewerEmail
+    );
 }

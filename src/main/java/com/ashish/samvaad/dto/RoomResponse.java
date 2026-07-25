@@ -2,6 +2,8 @@ package com.ashish.samvaad.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,4 +19,5 @@ public class RoomResponse {
 
     private String roomType;
 
+    private List<RoomMemberResponse> members;
 }
