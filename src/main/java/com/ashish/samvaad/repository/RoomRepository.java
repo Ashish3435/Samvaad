@@ -18,9 +18,16 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
 
     List<Room> findByRoomType(RoomType roomType);
 
+    @Query("""
+            SELECT DISTINCT r
+            FROM Room r
+            JOIN FETCH r.members
+            WHERE r.roomType = :roomType
+              AND :user MEMBER OF r.members
+            """)
     List<Room> findByRoomTypeAndMembersContaining(
-            RoomType roomType,
-            User user
+            @Param("roomType") RoomType roomType,
+            @Param("user") User user
     );
 
     @Query("""
@@ -30,5 +37,17 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
             WHERE r.createdBy = :user
                OR :user MEMBER OF r.members
             """)
-    List<Room> findMyRooms(@Param("user") User user);
+    List<Room> findMyRooms(
+            @Param("user") User user
+    );
+
+    @Query("""
+            SELECT DISTINCT r
+            FROM Room r
+            LEFT JOIN FETCH r.members
+            WHERE r.roomCode = :roomCode
+            """)
+    Optional<Room> findByRoomCodeWithMembers(
+            @Param("roomCode") String roomCode
+    );
 }

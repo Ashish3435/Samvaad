@@ -2,6 +2,7 @@ package com.ashish.samvaad.service.impl;
 
 import com.ashish.samvaad.dto.MessageRequest;
 import com.ashish.samvaad.dto.MessageResponse;
+import com.ashish.samvaad.dto.MessageSeenResponse;
 import com.ashish.samvaad.entity.Message;
 import com.ashish.samvaad.entity.Room;
 import com.ashish.samvaad.entity.User;
@@ -9,6 +10,8 @@ import com.ashish.samvaad.repository.MessageRepository;
 import com.ashish.samvaad.repository.RoomRepository;
 import com.ashish.samvaad.repository.UserRepository;
 import com.ashish.samvaad.service.MessageService;
+
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,11 +28,16 @@ public class MessageServiceImpl
 
     private final UserRepository userRepository;
 
+    private final SimpMessagingTemplate messagingTemplate;
+
+
     public MessageServiceImpl(
             MessageRepository messageRepository,
             RoomRepository roomRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            SimpMessagingTemplate messagingTemplate
     ) {
+
         this.messageRepository =
                 messageRepository;
 
@@ -38,7 +46,11 @@ public class MessageServiceImpl
 
         this.userRepository =
                 userRepository;
+
+        this.messagingTemplate =
+                messagingTemplate;
     }
+
 
     @Override
     public MessageResponse sendMessage(
@@ -55,6 +67,7 @@ public class MessageServiceImpl
                                 )
                         );
 
+
         Room room =
                 roomRepository
                         .findByRoomCode(
@@ -65,6 +78,7 @@ public class MessageServiceImpl
                                         "Room not found"
                                 )
                         );
+
 
         Message message =
                 Message.builder()
@@ -79,11 +93,16 @@ public class MessageServiceImpl
                         .seen(false)
                         .build();
 
+
         Message savedMessage =
                 messageRepository.save(message);
 
-        return mapToResponse(savedMessage);
+
+        return mapToResponse(
+                savedMessage
+        );
     }
+
 
     @Override
     public List<MessageResponse> getMessages(
@@ -99,12 +118,14 @@ public class MessageServiceImpl
                                 )
                         );
 
+
         return messageRepository
                 .findByRoomOrderBySentAtAsc(room)
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
     }
+
 
     @Override
     @Transactional
@@ -122,6 +143,7 @@ public class MessageServiceImpl
                                 )
                         );
 
+
         User viewer =
                 userRepository
                         .findByEmail(viewerEmail)
@@ -131,6 +153,7 @@ public class MessageServiceImpl
                                 )
                         );
 
+
         List<Message> unreadMessages =
                 messageRepository
                         .findByRoomAndSenderNotAndSeenFalse(
@@ -138,22 +161,54 @@ public class MessageServiceImpl
                                 viewer
                         );
 
-        for (Message message : unreadMessages) {
+
+        if (
+                unreadMessages.isEmpty()
+        ) {
+
+            return;
+        }
+
+
+        for (
+                Message message :
+                unreadMessages
+        ) {
 
             message.setSeen(true);
         }
 
+
         messageRepository.saveAll(
                 unreadMessages
         );
+
+
+        MessageSeenResponse seenResponse =
+                MessageSeenResponse.builder()
+                        .roomCode(roomCode)
+                        .seenBy(viewerEmail)
+                        .build();
+
+
+        messagingTemplate.convertAndSend(
+                "/topic/" +
+                        roomCode +
+                        "/seen",
+
+                seenResponse
+        );
     }
+
 
     private MessageResponse mapToResponse(
             Message message
     ) {
 
         return MessageResponse.builder()
-                .id(message.getId())
+                .id(
+                        message.getId()
+                )
                 .content(
                         message.getContent()
                 )

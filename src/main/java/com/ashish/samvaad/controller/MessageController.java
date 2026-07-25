@@ -3,6 +3,7 @@ package com.ashish.samvaad.controller;
 import com.ashish.samvaad.dto.MessageRequest;
 import com.ashish.samvaad.dto.MessageResponse;
 import com.ashish.samvaad.service.MessageService;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,7 @@ public class MessageController {
 
     private final MessageService messageService;
 
+
     public MessageController(
             MessageService messageService
     ) {
@@ -21,6 +23,7 @@ public class MessageController {
         this.messageService =
                 messageService;
     }
+
 
     @PostMapping
     public MessageResponse sendMessage(
@@ -34,6 +37,7 @@ public class MessageController {
         );
     }
 
+
     @GetMapping("/{roomCode}")
     public List<MessageResponse> getMessages(
             @PathVariable String roomCode
@@ -43,6 +47,7 @@ public class MessageController {
                 roomCode
         );
     }
+
 
     @PutMapping("/{roomCode}/seen")
     public void markMessagesAsSeen(
