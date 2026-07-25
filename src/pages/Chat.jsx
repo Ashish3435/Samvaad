@@ -1,9 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState
+} from "react";
+
 import { useNavigate } from "react-router-dom";
 
 import { logout } from "../services/authService";
-import { getMessages } from "../services/messageService";
-import { getOnlineUsers } from "../services/userService";
+
+import {
+    getMessages,
+    markMessagesAsSeen
+} from "../services/messageService";
+
+import {
+    getOnlineUsers
+} from "../services/userService";
+
 import {
     getRooms,
     createPrivateRoom
@@ -20,23 +34,128 @@ import ChatWindow from "../components/ChatWindow";
 import ChatInput from "../components/ChatInput";
 import NewChatModal from "../components/NewChatModal";
 
+
 export default function Chat() {
 
     const navigate = useNavigate();
 
     const bottomRef = useRef(null);
 
-    const [messages, setMessages] = useState([]);
 
-    const [onlineUsers, setOnlineUsers] = useState([]);
+    const [messages, setMessages] =
+        useState([]);
 
-    const [rooms, setRooms] = useState([]);
+    const [onlineUsers, setOnlineUsers] =
+        useState([]);
 
-    const [selectedRoom, setSelectedRoom] = useState("");
+    const [rooms, setRooms] =
+        useState([]);
 
-    const [showNewChat, setShowNewChat] = useState(false);
+    const [selectedRoom, setSelectedRoom] =
+        useState("");
 
-    const [typingUser, setTypingUser] = useState("");
+    const [showNewChat, setShowNewChat] =
+        useState(false);
+
+    const [typingUser, setTypingUser] =
+        useState("");
+
+
+    const currentUserEmail =
+        localStorage.getItem("email");
+
+
+    const loadRooms =
+        useCallback(async () => {
+
+            try {
+
+                const data =
+                    await getRooms();
+
+                setRooms(data);
+
+
+                setSelectedRoom(
+                    (currentSelectedRoom) => {
+
+                        if (
+                            currentSelectedRoom &&
+                            data.some(
+                                (room) =>
+                                    room.roomCode ===
+                                    currentSelectedRoom
+                            )
+                        ) {
+
+                            return currentSelectedRoom;
+                        }
+
+
+                        return data.length > 0
+                            ? data[0].roomCode
+                            : "";
+
+                    }
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "ROOM ERROR :",
+                    error
+                );
+
+            }
+
+        }, []);
+
+
+    const loadMessages =
+        useCallback(async (roomCode) => {
+
+            try {
+
+                const data =
+                    await getMessages(
+                        roomCode
+                    );
+
+                setMessages(data);
+
+            } catch (error) {
+
+                console.error(
+                    "MESSAGE ERROR :",
+                    error
+                );
+
+            }
+
+        }, []);
+
+
+    const loadOnlineUsers =
+        useCallback(async () => {
+
+            try {
+
+                const data =
+                    await getOnlineUsers();
+
+                setOnlineUsers(data);
+
+            } catch (error) {
+
+                console.error(
+                    "ONLINE USERS ERROR :",
+                    error
+                );
+
+            }
+
+        }, []);
+
 
     useEffect(() => {
 
@@ -44,11 +163,13 @@ export default function Chat() {
 
         loadOnlineUsers();
 
-        const interval = setInterval(() => {
 
-            loadOnlineUsers();
+        const interval =
+            setInterval(
+                loadOnlineUsers,
+                5000
+            );
 
-        }, 5000);
 
         return () => {
 
@@ -58,7 +179,11 @@ export default function Chat() {
 
         };
 
-    }, []);
+    }, [
+        loadRooms,
+        loadOnlineUsers
+    ]);
+
 
     useEffect(() => {
 
@@ -68,45 +193,51 @@ export default function Chat() {
 
         }
 
+
         disconnectWebSocket();
+
 
         setMessages([]);
 
         setTypingUser("");
 
-        loadMessages(selectedRoom);
 
-        connect(selectedRoom);
+        loadMessages(
+            selectedRoom
+        );
 
-    }, [selectedRoom]);
 
-    useEffect(() => {
+        markMessagesAsSeen(
+            selectedRoom
+        ).catch((error) => {
 
-        bottomRef.current?.scrollIntoView({
-
-            behavior: "smooth"
+            console.error(
+                "MARK SEEN ERROR :",
+                error
+            );
 
         });
 
-    }, [messages]);
-
-    const connect = (roomCode) => {
 
         connectWebSocket(
 
-            roomCode,
+            selectedRoom,
+
 
             (message) => {
 
-                setMessages((previousMessages) => [
+                setMessages(
+                    (previousMessages) => [
 
-                    ...previousMessages,
+                        ...previousMessages,
 
-                    message
+                        message
 
-                ]);
+                    ]
+                );
 
             },
+
 
             (typingData) => {
 
@@ -122,170 +253,197 @@ export default function Chat() {
 
         );
 
-    };
 
-    const loadRooms = async () => {
+        return () => {
 
-        try {
+            disconnectWebSocket();
 
-            const data = await getRooms();
+        };
 
-            setRooms(data);
+    }, [
+        selectedRoom,
+        loadMessages
+    ]);
+
+
+    useEffect(() => {
+
+        bottomRef.current?.scrollIntoView({
+
+            behavior: "smooth"
+
+        });
+
+    }, [
+        messages
+    ]);
+
+
+    const handleSend =
+        (text) => {
 
             if (
-                data.length > 0 &&
+                !text ||
+                !text.trim() ||
                 !selectedRoom
             ) {
 
+                return;
+
+            }
+
+
+            sendMessage({
+
+                roomCode:
+                selectedRoom,
+
+                content:
+                text
+
+            });
+
+        };
+
+
+    const handleRoomCreated =
+        async (newRoom) => {
+
+            try {
+
+                const updatedRooms =
+                    await getRooms();
+
+                setRooms(
+                    updatedRooms
+                );
+
+
                 setSelectedRoom(
-                    data[0].roomCode
+                    newRoom.roomCode
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "ROOM REFRESH ERROR :",
+                    error
                 );
 
             }
 
-        } catch (error) {
+        };
 
-            console.error(
-                "ROOM ERROR :",
-                error
-            );
 
-        }
+    const handleUserSelected =
+        async (user) => {
 
-    };
+            try {
 
-    const loadMessages = async (roomCode) => {
-
-        try {
-
-            const data =
-                await getMessages(roomCode);
-
-            setMessages(data);
-
-        } catch (error) {
-
-            console.error(
-                "MESSAGE ERROR :",
-                error
-            );
-
-        }
-
-    };
-
-    const loadOnlineUsers = async () => {
-
-        try {
-
-            const data =
-                await getOnlineUsers();
-
-            setOnlineUsers(data);
-
-        } catch (error) {
-
-            console.error(
-                "ONLINE USERS ERROR :",
-                error
-            );
-
-        }
-
-    };
-
-    const handleSend = (text) => {
-
-        if (!text.trim()) {
-
-            return;
-
-        }
-
-        sendMessage({
-
-            roomCode: selectedRoom,
-
-            content: text
-
-        });
-
-    };
-
-    const handleRoomCreated = async (newRoom) => {
-
-        try {
-
-            const updatedRooms =
-                await getRooms();
-
-            setRooms(updatedRooms);
-
-            setSelectedRoom(
-                newRoom.roomCode
-            );
-
-        } catch (error) {
-
-            console.error(
-                "ROOM REFRESH ERROR :",
-                error
-            );
-
-        }
-
-    };
-
-    const handleUserSelected = async (user) => {
-
-        try {
-
-            setShowNewChat(false);
-
-            const privateRoom =
-                await createPrivateRoom(
-                    user.email
+                setShowNewChat(
+                    false
                 );
 
-            const updatedRooms =
-                await getRooms();
 
-            setRooms(updatedRooms);
+                const privateRoom =
+                    await createPrivateRoom(
+                        user.email
+                    );
 
-            setSelectedRoom(
-                privateRoom.roomCode
+
+                const updatedRooms =
+                    await getRooms();
+
+
+                setRooms(
+                    updatedRooms
+                );
+
+
+                setSelectedRoom(
+                    privateRoom.roomCode
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "PRIVATE CHAT ERROR :",
+                    error
+                );
+
+            }
+
+        };
+
+
+    const handleLogout =
+        () => {
+
+            disconnectWebSocket();
+
+            logout();
+
+            navigate(
+                "/login"
             );
 
-        } catch (error) {
+        };
 
-            console.error(
-                "PRIVATE CHAT ERROR :",
-                error
-            );
 
-        }
+    const selectedRoomData =
+        rooms.find(
 
-    };
+            (room) =>
 
-    const handleLogout = () => {
+                room.roomCode ===
+                selectedRoom
 
-        disconnectWebSocket();
+        );
 
-        logout();
-
-        navigate("/login");
-
-    };
 
     const selectedRoomName =
-        rooms.find(
-            (room) =>
-                room.roomCode === selectedRoom
-        )?.roomName || selectedRoom;
+        selectedRoomData?.roomName ||
+        selectedRoom;
+
+
+    const selectedRoomType =
+        selectedRoomData?.roomType;
+
+
+    const opponent =
+        selectedRoomType === "CHAT"
+
+            ? selectedRoomData?.members?.find(
+
+                (member) =>
+
+                    member.email !==
+                    currentUserEmail
+
+            )
+
+            : null;
+
+
+    const displayRoomName =
+        opponent?.fullName ||
+        selectedRoomName;
+
+
+    const isOpponentOnline =
+        opponent
+            ? onlineUsers.some(
+                (user) =>
+                    user.email ===
+                    opponent.email
+            )
+            : false;
+
 
     return (
 
         <div className="h-screen flex bg-slate-100">
+
 
             <Sidebar
 
@@ -297,7 +455,9 @@ export default function Chat() {
                     setSelectedRoom
                 }
 
-                onlineUsers={onlineUsers}
+                onlineUsers={
+                    onlineUsers
+                }
 
                 onLogout={
                     handleLogout
@@ -309,31 +469,64 @@ export default function Chat() {
 
                 onNewChat={() => {
 
-                    if (!showNewChat) {
-
-                        setShowNewChat(true);
-
-                    }
+                    setShowNewChat(
+                        true
+                    );
 
                 }}
 
             />
 
-            <div className="flex-1 flex flex-col">
+
+            <div className="flex-1 flex flex-col min-w-0">
+
 
                 <div className="bg-white border-b px-5 py-3">
 
+
                     <h2 className="text-xl font-bold">
 
-                        {selectedRoomName}
+                        {displayRoomName}
 
                     </h2>
+
+
+                    {selectedRoomType === "CHAT" &&
+                        opponent && (
+
+                            <p
+                                className={`text-sm ${
+                                    isOpponentOnline
+                                        ? "text-green-600"
+                                        : "text-gray-400"
+                                }`}
+                            >
+
+                                <span className="mr-1">
+
+                                    ●
+
+                                </span>
+
+
+                                {isOpponentOnline
+                                    ? "Online"
+                                    : "Offline"}
+
+                            </p>
+
+                        )}
+
 
                     {typingUser && (
 
                         <p className="text-sm text-green-600">
 
-                            {typingUser} is typing...
+                            {typingUser}
+
+                            {" "}
+
+                            is typing...
 
                         </p>
 
@@ -341,23 +534,34 @@ export default function Chat() {
 
                 </div>
 
+
                 <ChatWindow
 
-                    messages={messages}
+                    messages={
+                        messages
+                    }
 
-                    bottomRef={bottomRef}
+                    bottomRef={
+                        bottomRef
+                    }
 
                 />
 
+
                 <ChatInput
 
-                    onSend={handleSend}
+                    onSend={
+                        handleSend
+                    }
 
-                    roomCode={selectedRoom}
+                    roomCode={
+                        selectedRoom
+                    }
 
                 />
 
             </div>
+
 
             {showNewChat && (
 
@@ -365,7 +569,9 @@ export default function Chat() {
 
                     onClose={() => {
 
-                        setShowNewChat(false);
+                        setShowNewChat(
+                            false
+                        );
 
                     }}
 

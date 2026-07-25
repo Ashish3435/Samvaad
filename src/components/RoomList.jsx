@@ -13,8 +13,11 @@ export default function RoomList({
                                      onNewChat,
                                      onRoomCreated,
                                  }) {
-    const [showGroupModal, setShowGroupModal] = useState(false);
-    const [showChannelModal, setShowChannelModal] = useState(false);
+    const [showGroupModal, setShowGroupModal] =
+        useState(false);
+
+    const [showChannelModal, setShowChannelModal] =
+        useState(false);
 
     const isChats = title?.includes("Chats");
     const isGroups = title?.includes("Groups");
@@ -74,14 +77,12 @@ export default function RoomList({
         <>
             <div className="mb-6">
 
-                {/* Title */}
                 <div className="flex justify-between items-center mb-3">
 
                     <h3 className="font-bold text-lg">
                         {title}
                     </h3>
 
-                    {/* Chats + */}
                     {isChats && (
                         <button
                             onClick={onNewChat}
@@ -91,7 +92,6 @@ export default function RoomList({
                         </button>
                     )}
 
-                    {/* Groups + */}
                     {isGroups && (
                         <button
                             onClick={() =>
@@ -103,7 +103,6 @@ export default function RoomList({
                         </button>
                     )}
 
-                    {/* Channels + */}
                     {isChannels && (
                         <button
                             onClick={() =>
@@ -117,7 +116,6 @@ export default function RoomList({
 
                 </div>
 
-                {/* Rooms */}
                 {rooms.length === 0 ? (
 
                     <p className="text-gray-400">
@@ -135,11 +133,19 @@ export default function RoomList({
                                     room.roomCode
                                 )
                             }
-                            className={`p-3 rounded-lg cursor-pointer mb-2 transition ${
+                            className={`
+                                p-3
+                                rounded-lg
+                                cursor-pointer
+                                mb-2
+                                transition
+                                truncate
+                                ${
                                 selectedRoom === room.roomCode
                                     ? "bg-blue-600 text-white"
                                     : "border hover:bg-blue-50"
-                            }`}
+                            }
+                            `}
                         >
                             {room.roomName}
                         </div>
@@ -150,30 +156,23 @@ export default function RoomList({
 
             </div>
 
-            {/* Create Group Modal */}
             {showGroupModal && (
-
                 <CreateGroupModal
                     onClose={() =>
                         setShowGroupModal(false)
                     }
                     onCreate={createGroup}
                 />
-
             )}
 
-            {/* Create Channel Modal */}
             {showChannelModal && (
-
                 <CreateChannelModal
                     onClose={() =>
                         setShowChannelModal(false)
                     }
                     onCreate={createChannel}
                 />
-
             )}
-
         </>
     );
 }

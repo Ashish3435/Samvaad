@@ -1,7 +1,9 @@
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
-const SOCKET_URL = "http://localhost:8083/chat";
+const SOCKET_URL =
+    import.meta.env.VITE_SOCKET_URL ||
+    "http://localhost:8083/chat";
 
 let stompClient = null;
 
@@ -12,6 +14,11 @@ export const connectWebSocket = (
 ) => {
 
     const token = localStorage.getItem("token");
+
+    if (!token) {
+        console.error("No JWT token found");
+        return;
+    }
 
     const socket = new SockJS(SOCKET_URL);
 

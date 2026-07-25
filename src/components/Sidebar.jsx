@@ -1,16 +1,15 @@
 import RoomList from "./RoomList";
 import OnlineUsers from "./OnlineUsers";
 
-
 export default function Sidebar({
 
-                                    rooms,
+                                    rooms = [],
 
                                     selectedRoom,
 
                                     onSelectRoom,
 
-                                    onlineUsers,
+                                    onlineUsers = [],
 
                                     onLogout,
 
@@ -18,46 +17,45 @@ export default function Sidebar({
 
                                     onNewChat,
 
+                                    currentUserEmail
+
                                 }) {
 
+    const chats =
+        rooms.filter(
+            (room) =>
+                room.roomType === "CHAT"
+        );
 
-    const chats = rooms.filter(
+    const groups =
+        rooms.filter(
+            (room) =>
+                room.roomType === "GROUP"
+        );
 
-        (room) => room.roomType === "CHAT"
+    const channels =
+        rooms.filter(
+            (room) =>
+                room.roomType === "CHANNEL"
+        );
 
-    );
-
-
-    const groups = rooms.filter(
-
-        (room) => room.roomType === "GROUP"
-
-    );
-
-
-    const channels = rooms.filter(
-
-        (room) => room.roomType === "CHANNEL"
-
-    );
-
+    const selectedRoomData =
+        rooms.find(
+            (room) =>
+                room.roomCode === selectedRoom
+        );
 
     return (
 
         <div className="w-80 bg-white border-r flex flex-col">
 
-
-            {/* Header */}
-
             <div className="p-5 border-b flex justify-between items-center">
-
 
                 <h2 className="text-2xl font-bold text-blue-600">
 
                     Samvaad
 
                 </h2>
-
 
                 <button
 
@@ -71,16 +69,9 @@ export default function Sidebar({
 
                 </button>
 
-
             </div>
 
-
-            {/* Sidebar content */}
-
             <div className="flex-1 overflow-y-auto p-4">
-
-
-                {/* Chats */}
 
                 <RoomList
 
@@ -98,11 +89,7 @@ export default function Sidebar({
 
                 />
 
-
                 <div className="my-5 border-t"></div>
-
-
-                {/* Groups */}
 
                 <RoomList
 
@@ -118,11 +105,7 @@ export default function Sidebar({
 
                 />
 
-
                 <div className="my-5 border-t"></div>
-
-
-                {/* Channels */}
 
                 <RoomList
 
@@ -138,21 +121,23 @@ export default function Sidebar({
 
                 />
 
-
                 <div className="my-5 border-t"></div>
-
-
-                {/* Online users */}
 
                 <OnlineUsers
 
                     users={onlineUsers}
 
+                    currentUserEmail={
+                        currentUserEmail
+                    }
+
+                    selectedRoomUserEmail={
+                        selectedRoomData?.otherUserEmail
+                    }
+
                 />
 
-
             </div>
-
 
         </div>
 

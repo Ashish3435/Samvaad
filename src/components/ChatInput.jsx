@@ -5,29 +5,22 @@ export default function ChatInput({
                                       onSend,
                                       roomCode
                                   }) {
-
     const [text, setText] = useState("");
 
     const typingTimeout = useRef(null);
 
     const handleChange = (event) => {
-
         const value = event.target.value;
 
         setText(value);
 
         if (!roomCode) {
-
             return;
-
         }
 
         sendTyping({
-
             roomCode,
-
             typing: true
-
         });
 
         clearTimeout(
@@ -38,25 +31,18 @@ export default function ChatInput({
             setTimeout(() => {
 
                 sendTyping({
-
                     roomCode,
-
                     typing: false
-
                 });
 
             }, 4000);
-
     };
 
     const handleSubmit = (event) => {
-
         event.preventDefault();
 
         if (!text.trim()) {
-
             return;
-
         }
 
         onSend(text);
@@ -68,51 +54,65 @@ export default function ChatInput({
         );
 
         sendTyping({
-
             roomCode,
-
             typing: false
-
         });
-
     };
 
     useEffect(() => {
-
         return () => {
-
             clearTimeout(
                 typingTimeout.current
             );
-
         };
-
     }, []);
 
     return (
-
         <form
             onSubmit={handleSubmit}
-            className="bg-white border-t p-4 flex gap-3"
+            className="
+                bg-white
+                border-t
+                p-2
+                sm:p-4
+                flex
+                gap-2
+                sm:gap-3
+            "
         >
-
             <input
                 type="text"
                 value={text}
                 onChange={handleChange}
                 placeholder="Type a message..."
-                className="flex-1 border rounded-lg px-4 py-3 outline-none"
+                className="
+                    flex-1
+                    min-w-0
+                    border
+                    rounded-lg
+                    px-3
+                    sm:px-4
+                    py-3
+                    outline-none
+                    text-sm
+                    sm:text-base
+                "
             />
 
             <button
                 type="submit"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg"
+                className="
+                    bg-blue-600
+                    text-white
+                    px-4
+                    sm:px-6
+                    py-3
+                    rounded-lg
+                    font-semibold
+                "
             >
                 Send
             </button>
-
         </form>
-
     );
-
 }
