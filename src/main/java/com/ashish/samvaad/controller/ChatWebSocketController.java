@@ -72,4 +72,18 @@ public class ChatWebSocketController {
                 response
         );
     }
+
+    @MessageMapping("/chat.seen")
+    public void markAsSeen(
+            Map<String, String> request,
+            Authentication authentication
+    ) {
+
+        String roomCode = request.get("roomCode");
+
+        messageService.markMessagesAsSeen(
+                roomCode,
+                authentication.getName()
+        );
+    }
 }

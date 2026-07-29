@@ -1,6 +1,10 @@
 package com.ashish.samvaad.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -18,6 +22,11 @@ public class RoomResponse {
     private String roomName;
 
     private String roomType;
+
+    // For private chat
+    private String otherUserName;
+
+    private String otherUserEmail;
 
     private List<RoomMemberResponse> members;
 }

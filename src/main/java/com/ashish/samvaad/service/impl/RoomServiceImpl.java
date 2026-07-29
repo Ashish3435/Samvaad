@@ -311,48 +311,69 @@ public class RoomServiceImpl implements RoomService {
                 .build();
     }
 
-    private RoomResponse mapToRoomResponse(
-            Room room
-    ) {
+    private RoomResponse mapToRoomResponse(Room room) {
+
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        String currentUserEmail =
+                authentication.getName();
 
         List<RoomMemberResponse> members =
                 room.getMembers()
                         .stream()
                         .map(user ->
-                                RoomMemberResponse
-                                        .builder()
-                                        .id(
-                                                user.getId()
-                                        )
-                                        .fullName(
-                                                user.getFullName()
-                                        )
-                                        .email(
-                                                user.getEmail()
-                                        )
-                                        .status(
-                                                user.getStatus()
-                                                        .name()
-                                        )
+                                RoomMemberResponse.builder()
+                                        .id(user.getId())
+                                        .fullName(user.getFullName())
+                                        .email(user.getEmail())
+                                        .status(user.getStatus().name())
                                         .build()
                         )
                         .toList();
 
-        return RoomResponse
-                .builder()
-                .id(
-                        room.getId()
-                )
-                .roomCode(
-                        room.getRoomCode()
-                )
-                .roomName(
-                        room.getRoomName()
-                )
-                .roomType(
-                        room.getRoomType()
-                                .name()
-                )
+        String otherUserName = room.getRoomName();
+        String otherUserEmail = null;
+
+        if (room.getRoomType() == RoomType.CHAT) {
+
+            User otherUser =
+                    room.getMembers()
+                            .stream()
+                            .filter(user ->
+                                    !user.getEmail().equalsIgnoreCase(currentUserEmail))
+                            .findFirst()
+                            .orElse(null);
+
+            if (otherUser != null) {
+
+                otherUserName = otherUser.getFullName();
+                otherUserEmail = otherUser.getEmail();
+
+            } else {
+
+                User me =
+                        room.getMembers()
+                                .stream()
+                                .findFirst()
+                                .orElse(null);
+
+                if (me != null) {
+                    otherUserName = me.getFullName();
+                    otherUserEmail = me.getEmail();
+                }
+            }
+        }
+
+        return RoomResponse.builder()
+                .id(room.getId())
+                .roomCode(room.getRoomCode())
+                .roomName(room.getRoomName())
+                .roomType(room.getRoomType().name())
+                .otherUserName(otherUserName)
+                .otherUserEmail(otherUserEmail)
                 .members(members)
                 .build();
     }
