@@ -1,16 +1,175 @@
-# React + Vite
+# 💬 Samvaad Backend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Modern real-time chat application backend built with **Spring Boot**, **WebSocket (STOMP)**, **JWT Authentication**, and **PostgreSQL**.
 
-Currently, two official plugins are available:
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-brightgreen)
+![Spring Security](https://img.shields.io/badge/Spring_Security-JWT-success)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 🔐 JWT Authentication
+- 👤 User Registration & Login
+- 💬 One-to-One Chat
+- 👥 Group Chat
+- ⚡ Real-time Messaging using WebSocket (STOMP)
+- 🟢 Online User Presence
+- 💾 PostgreSQL Database
+- 🛡 Spring Security
+- 🌐 REST APIs
+- 📡 Message Persistence
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠 Tech Stack
+
+### Backend
+
+- Java 21
+- Spring Boot
+- Spring Security
+- Spring Data JPA
+- Hibernate
+- JWT
+- WebSocket (STOMP)
+- PostgreSQL
+- Maven
+
+---
+
+# 📂 Project Structure
+
+```
+src
+├── main
+│   ├── java
+│   │   └── com
+│   │       └── ashish
+│   │           └── samvaad
+│   │               ├── config
+│   │               ├── controller
+│   │               ├── dto
+│   │               ├── entity
+│   │               ├── repository
+│   │               ├── security
+│   │               ├── service
+│   │               ├── websocket
+│   │               └── SamvaadApplication.java
+│   └── resources
+│       └── application.properties
+```
+
+---
+
+# 🚀 Getting Started
+
+## Clone Repository
+
+```bash
+git clone https://github.com/Ashish3435/Samvaad.git
+
+cd Samvaad
+```
+
+---
+
+## Configure Environment
+
+Update your database credentials inside
+
+```
+application.properties
+```
+
+Example
+
+```properties
+spring.datasource.url=YOUR_DB_URL
+spring.datasource.username=YOUR_USERNAME
+spring.datasource.password=YOUR_PASSWORD
+
+jwt.secret=YOUR_SECRET
+```
+
+---
+
+## Run Application
+
+```bash
+mvn spring-boot:run
+```
+
+Backend runs on
+
+```
+http://localhost:8083
+```
+
+---
+
+# 📦 Build
+
+```bash
+mvn clean install
+```
+
+---
+
+# 🗺 Roadmap
+
+## ✅ V1.0.0
+
+- JWT Authentication
+- Spring Security
+- User Registration & Login
+- Personal Chat
+- Group Chat
+- WebSocket Messaging
+- PostgreSQL Integration
+
+---
+
+## 🚧 V2 (In Progress)
+
+- 📞 Voice Calling
+- 🎥 Video Calling
+- 📁 Media Sharing
+- 😊 Emoji Reactions
+- ✍ Typing Indicator
+- ✔ Read Receipts
+- 🔔 Push Notifications
+- ⚡ Performance Improvements
+
+---
+
+# 🏷 Current Stable Release
+
+**v1.0.0**
+
+Released: July 2026
+
+---
+
+# 👨‍💻 Author
+
+**Ashish Prajapati**
+
+GitHub
+
+https://github.com/Ashish3435
+
+---
+
+# ⭐ Support
+
+If you found this project useful,
+
+⭐ Star the repository
+
+🍴 Fork it
+
+🚀 Build something awesome!
