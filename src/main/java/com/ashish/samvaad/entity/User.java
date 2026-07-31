@@ -35,7 +35,6 @@ public class User {
     @Builder.Default
     private UserStatus status = UserStatus.OFFLINE;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String profileImageBase64;
 
