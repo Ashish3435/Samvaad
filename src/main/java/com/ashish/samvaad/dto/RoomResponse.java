@@ -28,6 +28,8 @@ public class RoomResponse {
 
     private String otherUserEmail;
 
+    private String otherUserPhoto;
+
     private List<RoomMemberResponse> members;
 
     private boolean isAdmin;

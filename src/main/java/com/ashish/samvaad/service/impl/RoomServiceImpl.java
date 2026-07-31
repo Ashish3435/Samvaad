@@ -89,7 +89,6 @@ public class RoomServiceImpl implements RoomService {
         room.getMembers()
                 .add(user);
 
-        /* CREATOR BECOMES ADMIN FOR GROUPS AND CHANNELS */
         room.getAdmins()
                 .add(user);
 
@@ -418,8 +417,6 @@ public class RoomServiceImpl implements RoomService {
 
         Room room = getRoomOrThrow(roomCode);
 
-        /* ONLY CHANNELS ARE BROADCAST-ONLY —
-           CHAT and GROUP allow any member to send */
         if (room.getRoomType() != RoomType.CHANNEL) {
             return true;
         }
@@ -492,6 +489,7 @@ public class RoomServiceImpl implements RoomService {
 
         String otherUserName = room.getRoomName();
         String otherUserEmail = null;
+        String otherUserPhoto = null;
 
         if (room.getRoomType() == RoomType.CHAT) {
 
@@ -507,6 +505,7 @@ public class RoomServiceImpl implements RoomService {
 
                 otherUserName = otherUser.getFullName();
                 otherUserEmail = otherUser.getEmail();
+                otherUserPhoto = otherUser.getProfileImageBase64();
 
             } else {
 
@@ -519,6 +518,7 @@ public class RoomServiceImpl implements RoomService {
                 if (me != null) {
                     otherUserName = me.getFullName();
                     otherUserEmail = me.getEmail();
+                    otherUserPhoto = me.getProfileImageBase64();
                 }
             }
         }
@@ -537,6 +537,7 @@ public class RoomServiceImpl implements RoomService {
                 .roomType(room.getRoomType().name())
                 .otherUserName(otherUserName)
                 .otherUserEmail(otherUserEmail)
+                .otherUserPhoto(otherUserPhoto)
                 .members(members)
                 .isAdmin(requesterIsAdmin)
                 .build();
