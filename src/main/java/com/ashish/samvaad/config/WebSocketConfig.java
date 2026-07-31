@@ -28,7 +28,8 @@ public class WebSocketConfig
     ) {
 
         registry.enableSimpleBroker(
-                "/topic"
+                "/topic",
+                "/queue"
         );
 
         registry.setApplicationDestinationPrefixes(

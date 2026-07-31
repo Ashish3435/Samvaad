@@ -3,6 +3,7 @@ package com.ashish.samvaad.controller;
 import com.ashish.samvaad.dto.MessageRequest;
 import com.ashish.samvaad.dto.MessageResponse;
 import com.ashish.samvaad.service.MessageService;
+import com.ashish.samvaad.service.RoomService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
@@ -16,13 +17,16 @@ public class ChatWebSocketController {
 
     private final MessageService messageService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final RoomService roomService;
 
     public ChatWebSocketController(
             MessageService messageService,
-            SimpMessagingTemplate messagingTemplate
+            SimpMessagingTemplate messagingTemplate,
+            RoomService roomService
     ) {
         this.messageService = messageService;
         this.messagingTemplate = messagingTemplate;
+        this.roomService = roomService;
     }
 
     @MessageMapping("/chat.send")
@@ -32,6 +36,22 @@ public class ChatWebSocketController {
     ) {
 
         String email = authentication.getName();
+
+        /* ENFORCE CHANNEL BROADCAST-ONLY RULE —
+           non-admins cannot send messages in a CHANNEL room */
+        boolean allowed =
+                roomService.canSendMessage(
+                        request.getRoomCode(),
+                        email
+                );
+
+        if (!allowed) {
+            System.out.println(
+                    "BLOCKED: " + email +
+                            " tried to send a message in a channel without admin rights"
+            );
+            return;
+        }
 
         MessageResponse response =
                 messageService.sendMessage(

@@ -1,7 +1,10 @@
 package com.ashish.samvaad.service.impl;
 
+import com.ashish.samvaad.dto.AddMemberRequest;
 import com.ashish.samvaad.dto.CreatePrivateRoomRequest;
 import com.ashish.samvaad.dto.CreateRoomRequest;
+import com.ashish.samvaad.dto.PromoteRequest;
+import com.ashish.samvaad.dto.RemoveMemberRequest;
 import com.ashish.samvaad.dto.RoomMemberResponse;
 import com.ashish.samvaad.dto.RoomResponse;
 import com.ashish.samvaad.dto.SidebarResponse;
@@ -84,6 +87,10 @@ public class RoomServiceImpl implements RoomService {
                         .build();
 
         room.getMembers()
+                .add(user);
+
+        /* CREATOR BECOMES ADMIN FOR GROUPS AND CHANNELS */
+        room.getAdmins()
                 .add(user);
 
         return roomRepository.save(room);
@@ -311,6 +318,162 @@ public class RoomServiceImpl implements RoomService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public RoomResponse addMember(
+            String roomCode,
+            AddMemberRequest request,
+            String requesterEmail
+    ) {
+
+        Room room = getRoomOrThrow(roomCode);
+
+        requireAdmin(room, requesterEmail);
+
+        User userToAdd =
+                userRepository
+                        .findByEmail(request.getEmail())
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "User to add not found"
+                                )
+                        );
+
+        room.getMembers().add(userToAdd);
+
+        Room savedRoom = roomRepository.save(room);
+
+        return mapToRoomResponse(savedRoom);
+    }
+
+    @Override
+    @Transactional
+    public RoomResponse removeMember(
+            String roomCode,
+            RemoveMemberRequest request,
+            String requesterEmail
+    ) {
+
+        Room room = getRoomOrThrow(roomCode);
+
+        requireAdmin(room, requesterEmail);
+
+        User userToRemove =
+                userRepository
+                        .findByEmail(request.getEmail())
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "User to remove not found"
+                                )
+                        );
+
+        room.getMembers().remove(userToRemove);
+        room.getAdmins().remove(userToRemove);
+
+        Room savedRoom = roomRepository.save(room);
+
+        return mapToRoomResponse(savedRoom);
+    }
+
+    @Override
+    @Transactional
+    public RoomResponse promoteToAdmin(
+            String roomCode,
+            PromoteRequest request,
+            String requesterEmail
+    ) {
+
+        Room room = getRoomOrThrow(roomCode);
+
+        requireAdmin(room, requesterEmail);
+
+        User userToPromote =
+                userRepository
+                        .findByEmail(request.getEmail())
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "User to promote not found"
+                                )
+                        );
+
+        if (!room.getMembers().contains(userToPromote)) {
+            throw new RuntimeException(
+                    "User must be a member before becoming an admin"
+            );
+        }
+
+        room.getAdmins().add(userToPromote);
+
+        Room savedRoom = roomRepository.save(room);
+
+        return mapToRoomResponse(savedRoom);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean canSendMessage(
+            String roomCode,
+            String email
+    ) {
+
+        Room room = getRoomOrThrow(roomCode);
+
+        /* ONLY CHANNELS ARE BROADCAST-ONLY —
+           CHAT and GROUP allow any member to send */
+        if (room.getRoomType() != RoomType.CHANNEL) {
+            return true;
+        }
+
+        return room.getAdmins()
+                .stream()
+                .anyMatch(admin ->
+                        admin.getEmail().equalsIgnoreCase(email)
+                );
+    }
+
+    private Room getRoomOrThrow(String roomCode) {
+
+        return roomRepository
+                .findByRoomCode(roomCode)
+                .orElseThrow(() ->
+                        new RuntimeException("Room not found")
+                );
+    }
+
+    private void requireAdmin(Room room, String requesterEmail) {
+
+        boolean isAdmin =
+                room.getAdmins()
+                        .stream()
+                        .anyMatch(admin ->
+                                admin.getEmail().equalsIgnoreCase(requesterEmail)
+                        );
+
+        if (!isAdmin) {
+            throw new RuntimeException(
+                    "Only admins can perform this action"
+            );
+        }
+    }
+
+    private RoomMemberResponse mapToMemberResponse(User user, Room room) {
+
+        boolean isAdmin =
+                room.getAdmins()
+                        .stream()
+                        .anyMatch(admin ->
+                                admin.getId().equals(user.getId())
+                        );
+
+        return RoomMemberResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .status(user.getStatus().name())
+                .admin(isAdmin)
+                .build();
+    }
+
     private RoomResponse mapToRoomResponse(Room room) {
 
         Authentication authentication =
@@ -324,14 +487,7 @@ public class RoomServiceImpl implements RoomService {
         List<RoomMemberResponse> members =
                 room.getMembers()
                         .stream()
-                        .map(user ->
-                                RoomMemberResponse.builder()
-                                        .id(user.getId())
-                                        .fullName(user.getFullName())
-                                        .email(user.getEmail())
-                                        .status(user.getStatus().name())
-                                        .build()
-                        )
+                        .map(user -> mapToMemberResponse(user, room))
                         .toList();
 
         String otherUserName = room.getRoomName();
@@ -367,6 +523,13 @@ public class RoomServiceImpl implements RoomService {
             }
         }
 
+        boolean requesterIsAdmin =
+                room.getAdmins()
+                        .stream()
+                        .anyMatch(admin ->
+                                admin.getEmail().equalsIgnoreCase(currentUserEmail)
+                        );
+
         return RoomResponse.builder()
                 .id(room.getId())
                 .roomCode(room.getRoomCode())
@@ -375,6 +538,7 @@ public class RoomServiceImpl implements RoomService {
                 .otherUserName(otherUserName)
                 .otherUserEmail(otherUserEmail)
                 .members(members)
+                .isAdmin(requesterIsAdmin)
                 .build();
     }
 }

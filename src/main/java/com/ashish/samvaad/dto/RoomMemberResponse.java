@@ -16,4 +16,6 @@ public class RoomMemberResponse {
     private String email;
 
     private String status;
+
+    private boolean admin;
 }

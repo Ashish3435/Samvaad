@@ -3,6 +3,9 @@ package com.ashish.samvaad.service;
 import com.ashish.samvaad.dto.AuthResponse;
 import com.ashish.samvaad.dto.LoginRequest;
 import com.ashish.samvaad.dto.RegisterRequest;
+import com.ashish.samvaad.dto.UpdateAboutStatusRequest;
+import com.ashish.samvaad.dto.UpdatePhotoRequest;
+import com.ashish.samvaad.dto.UserProfileResponse;
 import com.ashish.samvaad.dto.UserStatusResponse;
 
 import java.util.List;
@@ -20,4 +23,10 @@ public interface UserService {
     List<UserStatusResponse> getAllUsers();
 
     List<UserStatusResponse> searchUsers(String keyword);
+
+    UserProfileResponse getMyProfile(String email);
+
+    UserProfileResponse updatePhoto(String email, UpdatePhotoRequest request);
+
+    UserProfileResponse updateAboutStatus(String email, UpdateAboutStatusRequest request);
 }

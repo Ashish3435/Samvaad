@@ -34,4 +34,11 @@ public class User {
     @Column(nullable = false)
     @Builder.Default
     private UserStatus status = UserStatus.OFFLINE;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String profileImageBase64;
+
+    @Column(length = 150)
+    private String aboutStatus;
 }

@@ -48,5 +48,19 @@ public class Room {
     private Set<User> members =
             new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "room_admins",
+            joinColumns = @JoinColumn(
+                    name = "room_id"
+            ),
+            inverseJoinColumns = @JoinColumn(
+                    name = "user_id"
+            )
+    )
+    @Builder.Default
+    private Set<User> admins =
+            new HashSet<>();
+
     private LocalDateTime createdAt;
 }

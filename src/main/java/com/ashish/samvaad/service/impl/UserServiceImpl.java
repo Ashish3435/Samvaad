@@ -3,6 +3,9 @@ package com.ashish.samvaad.service.impl;
 import com.ashish.samvaad.dto.AuthResponse;
 import com.ashish.samvaad.dto.LoginRequest;
 import com.ashish.samvaad.dto.RegisterRequest;
+import com.ashish.samvaad.dto.UpdateAboutStatusRequest;
+import com.ashish.samvaad.dto.UpdatePhotoRequest;
+import com.ashish.samvaad.dto.UserProfileResponse;
 import com.ashish.samvaad.dto.UserStatusResponse;
 import com.ashish.samvaad.entity.Role;
 import com.ashish.samvaad.entity.User;
@@ -16,6 +19,7 @@ import com.ashish.samvaad.security.JwtService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -147,6 +151,58 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Override
+    public UserProfileResponse getMyProfile(String email) {
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found")
+                );
+
+        return mapToProfileResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse updatePhoto(
+            String email,
+            UpdatePhotoRequest request
+    ) {
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found")
+                );
+
+        user.setProfileImageBase64(request.getProfileImageBase64());
+
+        userRepository.save(user);
+
+        return mapToProfileResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse updateAboutStatus(
+            String email,
+            UpdateAboutStatusRequest request
+    ) {
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found")
+                );
+
+        user.setAboutStatus(request.getAboutStatus());
+
+        userRepository.save(user);
+
+        return mapToProfileResponse(user);
+    }
+
     private UserStatusResponse mapToResponse(User user) {
 
         return new UserStatusResponse(
@@ -154,6 +210,17 @@ public class UserServiceImpl implements UserService {
                 user.getFullName(),
                 user.getEmail(),
                 user.getStatus()
+        );
+    }
+
+    private UserProfileResponse mapToProfileResponse(User user) {
+
+        return new UserProfileResponse(
+                user.getId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getProfileImageBase64(),
+                user.getAboutStatus()
         );
     }
 }
