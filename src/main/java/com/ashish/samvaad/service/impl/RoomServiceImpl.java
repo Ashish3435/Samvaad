@@ -539,7 +539,7 @@ public class RoomServiceImpl implements RoomService {
                 .otherUserEmail(otherUserEmail)
                 .otherUserPhoto(otherUserPhoto)
                 .members(members)
-                .isAdmin(requesterIsAdmin)
+                .admin(requesterIsAdmin)
                 .build();
     }
 }

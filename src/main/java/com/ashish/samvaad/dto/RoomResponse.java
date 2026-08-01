@@ -23,7 +23,6 @@ public class RoomResponse {
 
     private String roomType;
 
-    // For private chat
     private String otherUserName;
 
     private String otherUserEmail;
@@ -32,5 +31,5 @@ public class RoomResponse {
 
     private List<RoomMemberResponse> members;
 
-    private boolean isAdmin;
+    private boolean admin;
 }
