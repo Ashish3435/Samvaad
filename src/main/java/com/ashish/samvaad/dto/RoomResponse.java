@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -32,4 +33,6 @@ public class RoomResponse {
     private List<RoomMemberResponse> members;
 
     private boolean admin;
+
+    private LocalDateTime lastMessageAt;
 }

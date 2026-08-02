@@ -53,6 +53,7 @@ public class MessageServiceImpl
 
 
     @Override
+    @Transactional
     public MessageResponse sendMessage(
             MessageRequest request,
             String email
@@ -80,6 +81,8 @@ public class MessageServiceImpl
                         );
 
 
+        LocalDateTime now = LocalDateTime.now();
+
         Message message =
                 Message.builder()
                         .content(
@@ -87,9 +90,7 @@ public class MessageServiceImpl
                         )
                         .sender(sender)
                         .room(room)
-                        .sentAt(
-                                LocalDateTime.now()
-                        )
+                        .sentAt(now)
                         .seen(false)
                         .build();
 
@@ -97,10 +98,29 @@ public class MessageServiceImpl
         Message savedMessage =
                 messageRepository.save(message);
 
+        room.setLastMessageAt(now);
+        roomRepository.save(room);
 
-        return mapToResponse(
-                savedMessage
-        );
+        MessageResponse response = mapToResponse(savedMessage);
+
+        /* NOTIFY EVERY OTHER ROOM MEMBER (not just whoever is
+           currently viewing this room) so their sidebar can
+           re-sort and fire a browser notification if this room
+           isn't the one they have open */
+        for (User member : room.getMembers()) {
+
+            if (member.getEmail().equalsIgnoreCase(email)) {
+                continue;
+            }
+
+            messagingTemplate.convertAndSendToUser(
+                    member.getEmail(),
+                    "/queue/notifications",
+                    response
+            );
+        }
+
+        return response;
     }
 
 

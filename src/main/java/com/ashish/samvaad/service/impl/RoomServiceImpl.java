@@ -260,8 +260,26 @@ public class RoomServiceImpl implements RoomService {
                                 )
                         );
 
-        return roomRepository
-                .findMyRooms(currentUser)
+        List<Room> myRooms =
+                roomRepository.findMyRooms(currentUser);
+
+        myRooms.sort((a, b) -> {
+            LocalDateTime la = a.getLastMessageAt();
+            LocalDateTime lb = b.getLastMessageAt();
+
+            if (la == null && lb == null) {
+                return 0;
+            }
+            if (la == null) {
+                return 1;
+            }
+            if (lb == null) {
+                return -1;
+            }
+            return lb.compareTo(la);
+        });
+
+        return myRooms
                 .stream()
                 .map(this::mapToRoomResponse)
                 .collect(
@@ -540,6 +558,7 @@ public class RoomServiceImpl implements RoomService {
                 .otherUserPhoto(otherUserPhoto)
                 .members(members)
                 .admin(requesterIsAdmin)
+                .lastMessageAt(room.getLastMessageAt())
                 .build();
     }
 }

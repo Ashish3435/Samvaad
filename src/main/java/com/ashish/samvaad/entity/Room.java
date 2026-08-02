@@ -63,4 +63,6 @@ public class Room {
             new HashSet<>();
 
     private LocalDateTime createdAt;
+
+    private LocalDateTime lastMessageAt;
 }
