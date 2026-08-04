@@ -35,4 +35,6 @@ public class RoomResponse {
     private boolean admin;
 
     private LocalDateTime lastMessageAt;
+
+    private long unreadCount;
 }

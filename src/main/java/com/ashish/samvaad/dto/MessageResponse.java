@@ -29,4 +29,6 @@ public class MessageResponse {
 
     private boolean seen;
 
+    private boolean mentioned;
+
 }

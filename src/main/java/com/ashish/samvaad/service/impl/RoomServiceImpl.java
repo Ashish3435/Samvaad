@@ -11,6 +11,7 @@ import com.ashish.samvaad.dto.SidebarResponse;
 import com.ashish.samvaad.entity.Room;
 import com.ashish.samvaad.entity.RoomType;
 import com.ashish.samvaad.entity.User;
+import com.ashish.samvaad.repository.MessageRepository;
 import com.ashish.samvaad.repository.RoomRepository;
 import com.ashish.samvaad.repository.UserRepository;
 import com.ashish.samvaad.service.RoomService;
@@ -31,12 +32,16 @@ public class RoomServiceImpl implements RoomService {
 
     private final UserRepository userRepository;
 
+    private final MessageRepository messageRepository;
+
     public RoomServiceImpl(
             RoomRepository roomRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            MessageRepository messageRepository
     ) {
         this.roomRepository = roomRepository;
         this.userRepository = userRepository;
+        this.messageRepository = messageRepository;
     }
 
     @Override
@@ -548,6 +553,16 @@ public class RoomServiceImpl implements RoomService {
                                 admin.getEmail().equalsIgnoreCase(currentUserEmail)
                         );
 
+        User currentUser =
+                userRepository
+                        .findByEmail(currentUserEmail)
+                        .orElse(null);
+
+        long unreadCount =
+                currentUser != null
+                        ? messageRepository.countByRoomAndSenderNotAndSeenFalse(room, currentUser)
+                        : 0;
+
         return RoomResponse.builder()
                 .id(room.getId())
                 .roomCode(room.getRoomCode())
@@ -559,6 +574,7 @@ public class RoomServiceImpl implements RoomService {
                 .members(members)
                 .admin(requesterIsAdmin)
                 .lastMessageAt(room.getLastMessageAt())
+                .unreadCount(unreadCount)
                 .build();
     }
 }

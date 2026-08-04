@@ -23,4 +23,11 @@ public interface MessageRepository
             Room room,
             User sender
     );
+
+
+    long
+    countByRoomAndSenderNotAndSeenFalse(
+            Room room,
+            User sender
+    );
 }

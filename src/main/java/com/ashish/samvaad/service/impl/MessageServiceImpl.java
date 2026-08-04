@@ -103,24 +103,54 @@ public class MessageServiceImpl
 
         MessageResponse response = mapToResponse(savedMessage);
 
-        /* NOTIFY EVERY OTHER ROOM MEMBER (not just whoever is
-           currently viewing this room) so their sidebar can
-           re-sort and fire a browser notification if this room
-           isn't the one they have open */
+        String content = request.getContent();
+        boolean isGroupOrChannel =
+                room.getRoomType().name().equals("GROUP") ||
+                        room.getRoomType().name().equals("CHANNEL");
+
         for (User member : room.getMembers()) {
 
             if (member.getEmail().equalsIgnoreCase(email)) {
                 continue;
             }
 
+            boolean mentioned =
+                    isGroupOrChannel &&
+                            isMentioned(content, member.getFullName());
+
+            MessageResponse notificationPayload =
+                    MessageResponse.builder()
+                            .id(response.getId())
+                            .content(response.getContent())
+                            .senderName(response.getSenderName())
+                            .senderEmail(response.getSenderEmail())
+                            .roomCode(response.getRoomCode())
+                            .sentAt(response.getSentAt())
+                            .seen(response.isSeen())
+                            .mentioned(mentioned)
+                            .build();
+
             messagingTemplate.convertAndSendToUser(
                     member.getEmail(),
                     "/queue/notifications",
-                    response
+                    notificationPayload
             );
         }
 
         return response;
+    }
+
+    private boolean isMentioned(String content, String fullName) {
+
+        if (content == null || fullName == null || fullName.isBlank()) {
+            return false;
+        }
+
+        String firstName = fullName.trim().split("\\s+")[0];
+
+        String mentionPattern = "@" + firstName;
+
+        return content.toLowerCase().contains(mentionPattern.toLowerCase());
     }
 
 
