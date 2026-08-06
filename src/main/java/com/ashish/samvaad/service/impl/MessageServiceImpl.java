@@ -81,6 +81,21 @@ public class MessageServiceImpl
                         );
 
 
+        boolean hasContent =
+                request.getContent() != null &&
+                        !request.getContent().isBlank();
+
+        boolean hasAttachment =
+                request.getAttachmentData() != null &&
+                        !request.getAttachmentData().isBlank();
+
+        if (!hasContent && !hasAttachment) {
+            throw new RuntimeException(
+                    "Message must have content or an attachment"
+            );
+        }
+
+
         LocalDateTime now = LocalDateTime.now();
 
         Message message =
@@ -92,6 +107,9 @@ public class MessageServiceImpl
                         .room(room)
                         .sentAt(now)
                         .seen(false)
+                        .attachmentData(request.getAttachmentData())
+                        .attachmentType(request.getAttachmentType())
+                        .attachmentName(request.getAttachmentName())
                         .build();
 
 
@@ -128,6 +146,9 @@ public class MessageServiceImpl
                             .sentAt(response.getSentAt())
                             .seen(response.isSeen())
                             .mentioned(mentioned)
+                            .attachmentData(response.getAttachmentData())
+                            .attachmentType(response.getAttachmentType())
+                            .attachmentName(response.getAttachmentName())
                             .build();
 
             messagingTemplate.convertAndSendToUser(
@@ -279,6 +300,15 @@ public class MessageServiceImpl
                 )
                 .seen(
                         message.isSeen()
+                )
+                .attachmentData(
+                        message.getAttachmentData()
+                )
+                .attachmentType(
+                        message.getAttachmentType()
+                )
+                .attachmentName(
+                        message.getAttachmentName()
                 )
                 .build();
     }

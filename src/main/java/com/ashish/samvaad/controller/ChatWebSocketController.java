@@ -37,8 +37,6 @@ public class ChatWebSocketController {
 
         String email = authentication.getName();
 
-        /* ENFORCE CHANNEL BROADCAST-ONLY RULE —
-           non-admins cannot send messages in a CHANNEL room */
         boolean allowed =
                 roomService.canSendMessage(
                         request.getRoomCode(),

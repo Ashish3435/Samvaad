@@ -14,4 +14,10 @@ public class MessageRequest {
     private String sender;
 
     private String content;
+
+    private String attachmentData;
+
+    private String attachmentType;
+
+    private String attachmentName;
 }

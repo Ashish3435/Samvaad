@@ -31,4 +31,10 @@ public class MessageResponse {
 
     private boolean mentioned;
 
+    private String attachmentData;
+
+    private String attachmentType;
+
+    private String attachmentName;
+
 }

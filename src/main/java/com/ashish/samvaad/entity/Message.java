@@ -18,7 +18,7 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @ManyToOne
@@ -34,4 +34,11 @@ public class Message {
     @Builder.Default
     @Column(nullable = false)
     private boolean seen = false;
+
+    @Column(columnDefinition = "TEXT")
+    private String attachmentData;
+
+    private String attachmentType;
+
+    private String attachmentName;
 }
